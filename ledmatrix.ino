@@ -41,7 +41,7 @@ void setup() {
    * Step 2: put ON or OFF the leds of column col_idx depending
    * on the values contained in input argument pixels[]
    */
-void set_column(uint8_t col_idx, bool pixels[]){
+void set_column_eachpin(uint8_t col_idx, bool pixels[]){
 
   for(uint8_t i=0; i<8; i++)
     mcp.digitalWrite(i, HIGH);
@@ -55,6 +55,29 @@ void set_column(uint8_t col_idx, bool pixels[]){
   for(uint8_t i=0; i<8; i++) //Cathodes are connected to Bank A of the MCP23O17
     if(pixels[i])
       mcp.digitalWrite(i, LOW);
+}
+
+
+/*
+Set a column of the led matrix
+All banks of the GPIO expander are set in a single transmission
+*/
+void set_column(uint8_t col_idx, bool pixels[]){
+
+  uint16_t ba = 0;
+  byte BankA = 0xff; //Cathodes are connected to Bank A of the MCP23O17
+  byte BankB = 0x00; //Anodes are connected to Bank B of the MCP23O17
+  //concatenate
+  ba = (BankB << 8) | (BankA);
+  mcp.writeGPIOAB(ba); //to get rid of ghost lighting
+
+  BankB |= 1 << col_idx;
+  BankA = 0x00;
+  for(uint8_t i=0; i<8; i++)
+    if(pixels[i]==0)
+      BankA |= 1 << i;
+  ba = (BankB << 8) | (BankA);
+  mcp.writeGPIOAB(ba);
 }
 
 /*  void display_character(bool character[3][5]):
