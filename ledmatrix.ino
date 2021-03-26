@@ -13,9 +13,10 @@ void setup() {
 
 void loop() {
   //static int counter = 0;
-  char text[7] = {'2', '0', '5', '2', '1', '\0'};
+//  char text[7] = {'2', '0', '5', '2', '1', '\0'};
+  char* text = "Hello World";
   //if(counter == 0){
-    ledmatrix.scroll_text(text, 1000);
+    ledmatrix.scroll_text(text, 300);
   //  counter++;
   //}
 }

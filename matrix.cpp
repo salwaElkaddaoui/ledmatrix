@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "characters.hpp"
 #include "matrix.hpp"
@@ -88,34 +89,32 @@ void Matrix::scroll_text(char* text, uint16_t refresh_rate){
   //for each character of the text string
   uint8_t c = 0;
   while( text[c] != '\0' ){
-
-    //get its bitmap 
-    bool bitmap[CHAR_W*this->mat_h] = {0};
-    get_bitmap( tolower( text[c] ), bitmap );
-  
-  #ifdef DEBUG
-    Serial.println("character bitmap: ");
-    for(int i=0; i<CHAR_W; i++){
-      for(int j=0; j<this->mat_h; j++){
-        Serial.print(bitmap[i*this->mat_h+j]);
-        Serial.print(" ");
-      }
-      Serial.println("\n");
+    uint8_t bitmap_width = 0; //number of columns of the bitmap
+    bool* bitmap;
+    if( isalnum(text[c]) ){
+      //get its bitmap 
+      bitmap = (bool*)calloc((CHAR_W+1)*this->mat_h, sizeof(bool));
+      get_bitmap( tolower( text[c] ), bitmap );
+      bitmap_width = CHAR_W+1; //I add one for the space after the character
     }
-    Serial.println("end of character bitmap");
-  #endif
-
+    else{
+      if( text[c] == ' '){
+        bitmap = (bool*)calloc(2*this->mat_h, sizeof(bool));
+        bitmap_width = 2;
+      }
+      else{
+        bitmap = (bool*)calloc(this->mat_h, sizeof(bool));
+        bitmap_width = 1;
+        }
+      }
+    
     //for each column of the bitmap of the character
-    for(uint8_t i=0; i<CHAR_W; i++){
+    for(uint8_t i=0; i<bitmap_width; i++){
       
       //if there's enough empty columns on the matrix, copy it to the matrix 
       if( num_empty_cols > 0 ){
         memcpy( *(matrix+num_empty_cols-1), bitmap+i*this->mat_h, this->mat_h*sizeof(bool) );
         num_empty_cols--;
-    #ifdef DEBUG
-        Serial.print("num_empty_cols: ");
-        Serial.println(num_empty_cols);
-    #endif
       }
       else{ //this means that all columns of the matrix are filled, 
             //and we need to display them
@@ -124,18 +123,8 @@ void Matrix::scroll_text(char* text, uint16_t refresh_rate){
         shift_to_left(matrix, bitmap+i*this->mat_h);
       }
     }
-
-  #ifdef DEBUG
-  Serial.println("inside scroll_text: ");
-    for(int  i=0; i<this->mat_w; i++){
-      for(int  j=0; j<this->mat_h; j++){
-        Serial.print(matrix[i][j]);
-        Serial.print(" ");
-      }
-      Serial.println("\n");
-    }
-  #endif
   c++;
+  free(bitmap);
   }
 
   //keep scrolling until the text disappears in the left direction
