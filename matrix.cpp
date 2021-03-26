@@ -1,20 +1,20 @@
 #include <Arduino.h>
+#include <string.h>
 
 #include "characters.hpp"
 #include "matrix.hpp"
 
-#include <string.h>
-
-Matrix::Matrix(uint8_t h, uint8_t w){
-  this->mat_h = h;
-  this->mat_w = w;
+Matrix::Matrix(uint8_t h, uint8_t w, uint8_t start_line){
+  this->mat_h = h; //led matrix height in pixels
+  this->mat_w = w; //led matrix width in pixels
+  this->start_line = start_line; //index of matrix row where the top of the character lands
 }
 
 void Matrix::init(){
   driver.begin();
   for(uint8_t i=0; i<16; i++)
     driver.pinMode(i, OUTPUT);
-  }
+}
 
 void Matrix::set_column(uint8_t col_idx, bool matrix_col[]){
 
@@ -64,7 +64,7 @@ void Matrix::get_bitmap(char c, bool* bitmap){
   if(hash_code >= 0)
     for(uint8_t i=0; i<CHAR_W; i++)//for each column of the bitmap  
       for(uint8_t j=0; j<CHAR_H; j++)//for each cell of the column
-        bitmap[ i*this->mat_h + j + START_LINE ] = char_table[hash_code][i*CHAR_H + j];
+        bitmap[ i*this->mat_h + j + this->start_line ] = char_table[hash_code][i*CHAR_H + j];
   else{
     #ifdef DEBUG
       Serial.println("Unknown character in text.\nPlease reboot the system...");
