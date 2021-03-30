@@ -5,16 +5,17 @@
 #include "characters.hpp"
 #include "matrix.hpp"
 
-Matrix::Matrix(uint8_t h, uint8_t w, uint8_t start_line){
-  this->mat_h = h; //led matrix height in pixels
-  this->mat_w = w; //led matrix width in pixels
-  this->start_line = start_line; //index of matrix row where the top of the character lands
+Matrix::Matrix(uint8_t h, uint8_t w, uint8_t start_line, const char content_[], byte BT_rxPin, byte BT_txPin)
+: mat_h(h), mat_w(w), start_line(start_line), BT(BT_rxPin, BT_txPin){
+
+  memcpy(this->content, content_, 8);
 }
 
 void Matrix::init(){
   driver.begin();
   for(uint8_t i=0; i<16; i++)
     driver.pinMode(i, OUTPUT);
+  BT.begin(9600);
 }
 
 void Matrix::set_column(uint8_t col_idx, bool matrix_col[]){
@@ -34,11 +35,13 @@ void Matrix::set_column(uint8_t col_idx, bool matrix_col[]){
   this->driver.writeGPIOAB(ba);
 }
 
-void Matrix::set_matrix(bool** matrix, uint16_t refresh_rate){
+void Matrix::display_matrix(bool** matrix, uint16_t refresh_rate){
   uint32_t time = millis();
-  while(millis() - time < refresh_rate)
+  while(millis() - time < refresh_rate){
     for(uint8_t i=0; i<this->mat_w; i++)
       set_column(i, matrix[i]);
+    catch_BT_data();
+  }
 }
 
 void Matrix::shift_to_left(bool** matrix, bool* newcol){
@@ -74,7 +77,7 @@ void Matrix::get_bitmap(char c, bool* bitmap){
   }
 }
 
-void Matrix::scroll_text(char* text, uint16_t refresh_rate){
+void Matrix::scroll(uint16_t refresh_rate){
 
   bool** matrix = (bool**)calloc(this->mat_w, sizeof(bool*));
   for( int i=0; i<this->mat_w; i++ ){
@@ -82,23 +85,24 @@ void Matrix::scroll_text(char* text, uint16_t refresh_rate){
   }
   
   //num_empty_cols is used to keep track of the matrix columns
-  //that are filled with a displayable content. Once all columns are filled,
-  //we shift the matrix content to the left in order to make space for new content
+  //that are filled with a displayable content. 
+  //Once all columns are filled, we shift the matrix content to the left
+  //in order to make space for new content
   uint8_t num_empty_cols = 1; 
 
   //for each character of the text string
   uint8_t c = 0;
-  while( text[c] != '\0' ){
+  while( this->content[c] != '\0' ){
     uint8_t bitmap_width = 0; //number of columns of the bitmap
     bool* bitmap;
-    if( isalnum(text[c]) ){
+    if( isalnum(this->content[c]) ){
       //get its bitmap 
       bitmap = (bool*)calloc((CHAR_W+1)*this->mat_h, sizeof(bool));
-      get_bitmap( tolower( text[c] ), bitmap );
+      get_bitmap( tolower( this->content[c] ), bitmap );
       bitmap_width = CHAR_W+1; //I add one for the space after the character
     }
     else{
-      if( text[c] == ' '){
+      if( this->content[c] == ' '){
         bitmap = (bool*)calloc(2*this->mat_h, sizeof(bool));
         bitmap_width = 2;
       }
@@ -119,7 +123,7 @@ void Matrix::scroll_text(char* text, uint16_t refresh_rate){
       else{ //this means that all columns of the matrix are filled, 
             //and we need to display them
             //and make space for new content by shifting the led matrix
-        set_matrix(matrix, refresh_rate);
+        display_matrix(matrix, refresh_rate);
         shift_to_left(matrix, bitmap+i*this->mat_h);
       }
     }
@@ -130,11 +134,26 @@ void Matrix::scroll_text(char* text, uint16_t refresh_rate){
   //keep scrolling until the text disappears in the left direction
   bool blank[this->mat_h] = {0};
   while( num_empty_cols <= this->mat_w ){
-    set_matrix(matrix, refresh_rate);
+    display_matrix(matrix, refresh_rate);
     shift_to_left(matrix, blank);
     num_empty_cols++;
   }
   for(int i=0; i<this->mat_w; i++)
     free(matrix[i]);
   free(matrix);
+}
+
+void Matrix::catch_BT_data(){
+  
+  if( this->BT.available() ){
+    uint8_t i= 0;
+    while( this->BT.available() && i<49 ){
+      char c = BT.read();
+      if( isalnum(c) || c == ' '){
+        this->content[i] = c;
+        i++;
+      }
+    }
+    this->content[i] = '\0';
+  }
 }

@@ -1,22 +1,12 @@
 #include "matrix.hpp"
 
-Matrix ledmatrix(8, 8, 2);
+Matrix ledmatrix(8, 8, 2, "xxxxxxx", 10, 11);
 
 void setup() {
-
-  #ifdef DEBUG
-    Serial.begin(9600);
-  #endif
-  
+  Serial.begin(9600);
   ledmatrix.init();
 }
 
 void loop() {
-  //static int counter = 0;
-//  char text[7] = {'2', '0', '5', '2', '1', '\0'};
-  char* text = "Hello World";
-  //if(counter == 0){
-    ledmatrix.scroll_text(text, 300);
-  //  counter++;
-  //}
+ ledmatrix.scroll(300);
 }
