@@ -5,12 +5,25 @@
 #include "characters.hpp"
 #include "matrix.hpp"
 
+/**
+ * Matrix class constructor:
+  
+    h         : height of the ledmatrix in pixels
+    w         : width of the ledmatrix in pixels
+    start_line: row of the ledmatrix on which the top of the character lands
+    content_  : intial content to scroll on the ledmatrix
+    BT_rxPin  : pin on which to receive bluetooth serial data
+    BT_txPin  : pin on which to transmit bluetooth serial data
+*/
 Matrix::Matrix(uint8_t h, uint8_t w, uint8_t start_line, const char content_[], byte BT_rxPin, byte BT_txPin)
 : mat_h(h), mat_w(w), start_line(start_line), BT(BT_rxPin, BT_txPin){
 
   memcpy(this->content, content_, 8);
 }
 
+/**
+ * Initializer of MCP23017 pins, bluetooth serial connection
+ */
 void Matrix::init(){
   driver.begin();
   for(uint8_t i=0; i<16; i++)
@@ -18,6 +31,9 @@ void Matrix::init(){
   BT.begin(9600);
 }
 
+/**
+ * Set (to ON or OFF) the pixels of a column of the ledmatrix
+ */
 void Matrix::set_column(uint8_t col_idx, bool matrix_col[]){
 
   uint16_t ba = 0; //variable holding the data to be written in registers GPIOA and GPIOB
@@ -35,6 +51,9 @@ void Matrix::set_column(uint8_t col_idx, bool matrix_col[]){
   this->driver.writeGPIOAB(ba);
 }
 
+/**
+ * Set all columns of the ledmatrix according to the content to display
+ */
 void Matrix::display_matrix(bool** matrix, uint16_t refresh_rate){
   uint32_t time = millis();
   while(millis() - time < refresh_rate){
@@ -44,6 +63,9 @@ void Matrix::display_matrix(bool** matrix, uint16_t refresh_rate){
   }
 }
 
+/**
+ * shift the content of the ledmatrix one step to the left
+ */
 void Matrix::shift_to_left(bool** matrix, bool* newcol){
   for(uint8_t i=this->mat_w-1; i>0; i--)
     memcpy(*(matrix+i), *(matrix+i-1), this->mat_h * sizeof(bool));
@@ -51,6 +73,9 @@ void Matrix::shift_to_left(bool** matrix, bool* newcol){
   memcpy(*(matrix), newcol, this->mat_h * sizeof(bool));
 }
 
+/**
+ * given a character, get its bitmap (that we defined in characters.hpp)
+ */
 void Matrix::get_bitmap(char c, bool* bitmap){
 
   uint8_t ascii_code = c;
@@ -77,6 +102,9 @@ void Matrix::get_bitmap(char c, bool* bitmap){
   }
 }
 
+/**
+ * scroll a content (usually a text string) on the matrix
+ */
 void Matrix::scroll(uint16_t refresh_rate){
 
   bool** matrix = (bool**)calloc(this->mat_w, sizeof(bool*));
@@ -143,6 +171,10 @@ void Matrix::scroll(uint16_t refresh_rate){
   free(matrix);
 }
 
+/**
+ * listen for text string to scroll on ledmatrix received via bluetooth 
+ * (sent from a phone having the Bluetooth Terminal App)
+ */
 void Matrix::catch_BT_data(){
   
   if( this->BT.available() ){
