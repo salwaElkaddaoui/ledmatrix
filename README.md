@@ -8,4 +8,4 @@ This repo contains C/C++ code to drive it 8x8 ledmatrix on Arduino and control i
 
 <br/>
 <h2>Can I too make a led matrix like this one?</h2>
-Of course! Just wait for my detailed project description on ![Hackster.io](https://www.hackster.io/salwaElkaddaoui), and you'll learn about the nuts and bolts of this project, including all the design choices I made along the way.
+Of course! Just wait for my detailed project description on [Hackster.io](https://www.hackster.io/salwaElkaddaoui), and you'll learn about the nuts and bolts of this project, including all the design choices I made along the way.
