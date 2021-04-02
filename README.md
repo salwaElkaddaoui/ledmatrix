@@ -3,7 +3,7 @@ This repo contains C/C++ code to drive an 8x8 ledmatrix on Arduino and control i
 
 
 ![type_sharpened_resized](https://user-images.githubusercontent.com/32744801/113311547-b83e2000-9309-11eb-9b9d-b9478687e35b.jpeg)
-![arrow_bluetooth](https://user-images.githubusercontent.com/32744801/113311584-c0965b00-9309-11eb-8e0e-e7bf16f04330.png)
+![arrow_bluetooth_small](https://user-images.githubusercontent.com/32744801/113399816-22ee6a80-93a1-11eb-89d3-a50e571fa8c3.png)
 ![ezgif com-gif-maker(1)](https://user-images.githubusercontent.com/32744801/113311610-c8ee9600-9309-11eb-8e24-2ac9fdf4a943.gif)
 
 <h2>Can I too make a led matrix like this one?</h2>
