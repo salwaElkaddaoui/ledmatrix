@@ -1,4 +1,4 @@
-<h1>Bluetooth controlled Led Matrix</h1>
+<h1>Bluetooth controlled Hand-Crafted LED Matrix</h1>
 This repo contains C/C++ code to drive an 8x8 ledmatrix on Arduino and control it via Bluetooth from an Android Phone (BlueTooth Terminal HC05 App).
 
 
